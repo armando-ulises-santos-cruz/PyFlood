@@ -2,10 +2,6 @@
 # PyFlood: Coastal Flood Mapping with High-Resolution Digital Elevation Model and Land Cover Data
 > A comprehensive tool for simulating coastal flooding using high-resolution DEM and land cover data, incorporating advanced processing and validation techniques.
 
-[![NPM Version][npm-image]][npm-url]
-[![Build Status][travis-image]][travis-url]
-[![Downloads Stats][npm-downloads]][npm-url]
-
 PyFlood is a Python-based tool designed for simulating and analyzing coastal flooding. It leverages high-resolution Digital Elevation Models (DEM) and land cover data to provide accurate flood maps. The tool includes preprocessing, simulation, and validation notebooks to streamline the workflow.
 
 ![](header.png)
@@ -245,4 +241,4 @@ pytest
 
 Armando Ulises Santos Cruz – armando.ulises.santos@utexas.edu
 
-Distributed under the MIT license. See ``LICENSE`` for more information.
+Distributed under the Creative Commons Legal Code CC0 1.0 Universal. See ``LICENSE`` for more information.
