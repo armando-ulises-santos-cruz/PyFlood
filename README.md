@@ -223,22 +223,12 @@ shapefile_gdf = read_shapefile(shapefile_path)
 extracted_data = {file: extract_raster_values(file, shapefile_gdf) for file in raster_files}
 ```
 
-_For more examples and usage, please refer to the Jupyter Notebooks Files
+# For more examples and usage, please refer to the Jupyter Notebooks Files
 
-## Development setup
-
-To set up the development environment, install the dependencies and run the test suite.
-
-```sh
-pip install -r requirements.txt
-pytest
-```
 
 ## Release History
-* 0.1.0
+* 1.0.1
     * The first proper release
-* 0.0.1
-    * Work in progress
 
 ## Meta
 
