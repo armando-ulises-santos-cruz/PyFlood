@@ -7,6 +7,9 @@ PyFlood is a Python-based tool designed for simulating and analyzing coastal flo
 ![](header.png)
 
 # Necessary Inputs Files
+To run PyFlood, please download the required input files from the following link as an example:
+https://utexas.box.com/v/PyFlood-Input-Files
+
 ## Digital Elevation Model (Merged_DEM_Galv_Calib.tif)
 Source of DEM Data
 NOAA NCEI: CUDEM 1/3 arc-second resolution
