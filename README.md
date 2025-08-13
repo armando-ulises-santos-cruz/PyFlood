@@ -176,8 +176,6 @@ pip install -r requirements.txt
 **Armando Ulises Santos Cruz**  
 Email: armando.ulises.santos@utexas.edu
 
-Distributed under the Creative Commons CC0 1.0 Universal License. See LICENSE for more information.
-
 
 
 Distributed under the Creative Commons CC0 1.0 Universal License. See LICENSE for more information.
