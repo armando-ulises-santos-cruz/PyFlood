@@ -9,7 +9,7 @@ A modular, reproducible framework for simulating and validating coastal flooding
 PyFlood is a Python-based system for simulating coastal flood extents and water depths. It combines high-resolution Digital Elevation Models (DEM), land cover, and water level data. Core features include:
 
 - Coastal flood mapping using Universal Kriging with External Drift.
-- Post-calibration through Bayesian Optimization based on high water marks observations.
+- Calibration through Bayesian Optimization based on high water marks observations.
 - Comparison against observed HWMs and hydrodynamic model outputs (SFINCS).
 
 PyFlood is organized into modular functions and reproducible Jupyter notebooks.
@@ -104,7 +104,6 @@ Example input files can be downloaded from:
 - Compare CFM and CFM+A against SFINCS flood maps.
 - Compare against observed HWMs.
 - Calculate confusion matrices and metrics (CSI, Recall, F1-Score, etc.).
-- Produce observed vs predicted HWM scatter plots.
 
 ---
 
