@@ -22,10 +22,12 @@ SFINCS_WL_FILE = os.path.join(INPUT_FOLDER, "SFINCS_Flood_Water_Level.tif")
 SEED_CSV = os.path.join(OUTPUT_FOLDER, "seed_ocean.csv")
 SEA_CORE_TIF = os.path.join(OUTPUT_FOLDER, "01_dem_sea_core.tif")
 LAND_CORE_TIF = os.path.join(OUTPUT_FOLDER, "01_dem_land_core.tif")
-COASTLINE_SHP = os.path.join(OUTPUT_FOLDER, "coastline.shp")
-DISTANCE_TO_COAST_TIF = os.path.join(OUTPUT_FOLDER, "Distance_to_Coastline.tif")
+WATER_BODY_SHP = os.path.join(OUTPUT_FOLDER, "water_body.shp")
+DISTANCE_TO_WATER_BODY = os.path.join(OUTPUT_FOLDER, "Distance_to_Water_Body.tif")
 ALIGNED_WATER_STATIONS_SHP = os.path.join(OUTPUT_FOLDER, "Aligned_Water_Stations.shp")
 ALIGNED_HWM_SHP = os.path.join(OUTPUT_FOLDER, "Aligned_HWM_with_indices.shp")
+# NEW – Water Body Perimeter
+WATER_BODY_PERIMETER_TIF = os.path.join(OUTPUT_FOLDER, "02_water_body_perimeter.tif")
 
 # ----------------------------------------------------------
 # PyFlood Outputs
@@ -77,12 +79,28 @@ THRESHOLD_DEPTH = 1.0  # Minimum flood depth threshold in meters
 # ----------------------------------------------------------
 # Manual Reduction Factors (Table 2)
 MANUAL_REDUCTION_FACTORS = {
-    2: 0.00000, 3: 0.002331, 4: 0.000172, 5: 0.000343,
-    6: 0.000000, 7: 0.000000, 8: 0.000000, 9: 0.000475,
-    10: 0.000240, 11: 0.000333, 12: 0.000333, 13: 0.000188,
-    14: 0.000000, 15: 0.000188, 16: 0.000000, 17: 0.000000,
-    18: 0.000000, 19: 0.000000, 20: 0.000000, 21: 0.000125,
-    22: 0.000000, 23: 0.000125
+2: 0.00025,
+3: 0.000667,
+4: 0.0005,
+5: 0.00025,
+6: 0.0004,
+7: 5.2e-05,
+8: 0.00025,
+9: 0.0005,
+10: 0.000125,
+11: 0.0004,
+12: 0.00035,
+13: 0.000225,
+14: 0.00025,
+15: 0.00025,
+16: 0.000225,
+17: 8.8e-05,
+18: 8.8e-05,
+19: 0.000115,
+20: 0.000115,
+21: 0.000125,
+22: 3.8e-05,
+23: 0.000125,
 }
 
 # ----------------------------------------------------------
