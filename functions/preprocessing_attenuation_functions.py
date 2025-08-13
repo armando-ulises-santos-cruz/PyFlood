@@ -13,6 +13,41 @@ from joblib import Parallel, delayed
 # Import constants from config.py
 from config import DEM_NULL_VALUE, CHUNK_SIZE_DISTANCE
 
+# ----------------------------------------------------------
+# NEW: Load perimeter-raster pixels as XYZ points
+# ----------------------------------------------------------
+def perimeter_raster_to_xyz(perim_tif, dem_lon, dem_lat, z_dem, nodata_val=0):
+    """
+    Convert a binary perimeter raster to XYZ arrays.
+
+    Parameters
+    ----------
+    perim_tif : str
+        Path to 02_water_body_perimeter.tif (binary, 1 = perimeter).
+    dem_lon, dem_lat, z_dem : ndarray
+        DEM longitude, latitude, and elevation grids (same shape as perimeter raster).
+    nodata_val : int, optional
+        Value representing NoData in the perimeter raster (default 0).
+
+    Returns
+    -------
+    water_body_perimeter_xyz : ndarray
+        Array [[X, Y, Z], …] for every perimeter pixel.
+    water_body_perimeter_pixel_indices : ndarray
+        Array [[row, col], …] of pixel indices.
+    """
+    with rasterio.open(perim_tif) as src:
+        perim = src.read(1)
+
+    rows, cols = np.where(perim != nodata_val)
+    water_body_perimeter_xyz = np.column_stack((
+        dem_lon[rows, cols],
+        dem_lat[rows, cols],
+        z_dem[rows, cols]
+    ))
+    water_body_perimeter_pixel_indices = np.column_stack((rows, cols))
+    return water_body_perimeter_xyz, water_body_perimeter_pixel_indices
+
 
 def load_seed_point(csv_file):
     """
@@ -41,74 +76,14 @@ def load_seed_point(csv_file):
     return (x_seed, y_seed), elevation_seed
 
 
-def coastline_morphological_dilation(dem_lon, dem_lat, z_dem, seed_ocean, epsg_code):
+def save_water_body_perimeter_as_shapefile(water_body_perimeter_xyz, output_shapefile, epsg_code):
     """
-    Extract coastline points from DEM using a seed ocean point.
+    Save extracted water body perimeter points to a Shapefile.
 
     Parameters
     ----------
-    dem_lon : ndarray
-        2D array of DEM longitude (X) coordinates.
-    dem_lat : ndarray
-        2D array of DEM latitude (Y) coordinates.
-    z_dem : ndarray
-        2D array of DEM elevation values.
-    seed_ocean : tuple
-        Tuple (x_seed, y_seed) of seed point coordinates.
-    epsg_code : int
-        EPSG code for the coordinate system.
-
-    Returns
-    -------
-    coastline_xyz : ndarray
-        Array of coastline points (X, Y, Elevation).
-    coastline_pixel_indices : ndarray
-        Array of pixel indices (row, column) for coastline points.
-    """
-    start_time = time.time()
-
-    seed_utm_x, seed_utm_y = seed_ocean
-    print(f"Seed water body coordinates in UTM (EPSG:{epsg_code}): ({seed_utm_x:.2f}, {seed_utm_y:.2f})")
-
-    binary_water_mask = np.where(z_dem > 0, 0, 1)
-    labeled_water = label(binary_water_mask, connectivity=2)
-
-    water_pixel_indices = np.column_stack(np.where(labeled_water > 0))
-    water_pixel_coords = np.column_stack((
-        dem_lon[water_pixel_indices[:, 0], water_pixel_indices[:, 1]],
-        dem_lat[water_pixel_indices[:, 0], water_pixel_indices[:, 1]]
-    ))
-    tree = cKDTree(water_pixel_coords)
-    _, nearest_index = tree.query([seed_utm_x, seed_utm_y])
-
-    closest_water_label = labeled_water[water_pixel_indices[nearest_index][0], water_pixel_indices[nearest_index][1]]
-    sea_mask = (labeled_water == closest_water_label)
-
-    sea_mask_cleaned = binary_closing(sea_mask)
-
-    coastline_mask = canny(sea_mask_cleaned.astype(float))
-    coastline_pixel_indices = np.argwhere(coastline_mask)
-
-    coastline_xyz = np.column_stack((
-        dem_lon[coastline_pixel_indices[:, 0], coastline_pixel_indices[:, 1]],
-        dem_lat[coastline_pixel_indices[:, 0], coastline_pixel_indices[:, 1]],
-        z_dem[coastline_pixel_indices[:, 0], coastline_pixel_indices[:, 1]]
-    ))
-
-    duration = time.time() - start_time
-    print(f"Coastline extraction completed in {duration:.2f} seconds.")
-
-    return coastline_xyz, coastline_pixel_indices
-
-
-def save_coastline_as_shapefile(coastline_xyz, output_shapefile, epsg_code):
-    """
-    Save extracted coastline points to a Shapefile.
-
-    Parameters
-    ----------
-    coastline_xyz : ndarray
-        Array of coastline points (X, Y, Elevation).
+    water_body_perimeter_xyz : ndarray
+        Array of water body perimeter points (X, Y, Elevation).
     output_shapefile : str
         Path to the output Shapefile.
     epsg_code : int
@@ -119,16 +94,16 @@ def save_coastline_as_shapefile(coastline_xyz, output_shapefile, epsg_code):
     None
     """
     df = pd.DataFrame({
-        "UTM_X": coastline_xyz[:, 0],
-        "UTM_Y": coastline_xyz[:, 1],
-        "Elevation_m": coastline_xyz[:, 2]
+        "UTM_X": water_body_perimeter_xyz[:, 0],
+        "UTM_Y": water_body_perimeter_xyz[:, 1],
+        "Elevation_m": water_body_perimeter_xyz[:, 2]
     })
 
     gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.UTM_X, df.UTM_Y))
     gdf.set_crs(f"EPSG:{epsg_code}", inplace=True)
     gdf.to_file(output_shapefile)
 
-    print(f"Coastline shapefile saved as {output_shapefile}")
+    print(f"Water body perimeter shapefile saved as {output_shapefile}")
 
 
 def compute_distances_chunk(start, end, dem_points, tree):
@@ -144,7 +119,7 @@ def compute_distances_chunk(start, end, dem_points, tree):
     dem_points : ndarray
         Array of DEM points (X, Y).
     tree : cKDTree
-        KDTree built from coastline points.
+        KDTree built from water body perimeter points.
 
     Returns
     -------
@@ -154,9 +129,9 @@ def compute_distances_chunk(start, end, dem_points, tree):
     return tree.query(dem_points[start:end], workers=-1)[0]
 
 
-def calc_distance_to_coast_parallel(dem_lon, dem_lat, z_dem, coastline_points, chunk_size=CHUNK_SIZE_DISTANCE):
+def calc_distance_to_water_body_parallel(dem_lon, dem_lat, z_dem, water_body_points, chunk_size=CHUNK_SIZE_DISTANCE):
     """
-    Compute shortest distances from DEM points to nearest coastline points using parallel processing.
+    Compute shortest distances from DEM points to nearest water body points using parallel processing.
 
     Parameters
     ----------
@@ -166,8 +141,8 @@ def calc_distance_to_coast_parallel(dem_lon, dem_lat, z_dem, coastline_points, c
         2D array of DEM latitude coordinates.
     z_dem : ndarray
         2D array of DEM elevation values.
-    coastline_points : ndarray
-        Array of coastline points (X, Y).
+    water_body_points : ndarray
+        Array of water body points (X, Y).
     chunk_size : int, optional
         Number of DEM points per processing chunk. Default is imported from config.
 
@@ -189,7 +164,7 @@ def calc_distance_to_coast_parallel(dem_lon, dem_lat, z_dem, coastline_points, c
     print(f"Processing {len(valid_lon):,} valid land points in parallel...")
 
     dem_points = np.column_stack((valid_lon, valid_lat))
-    tree = cKDTree(coastline_points)
+    tree = cKDTree(water_body_points)
 
     num_chunks = (len(valid_lon) + chunk_size - 1) // chunk_size
     chunk_indices = [(i * chunk_size, min((i + 1) * chunk_size, len(valid_lon))) for i in range(num_chunks)]

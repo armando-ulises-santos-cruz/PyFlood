@@ -125,7 +125,7 @@ def compute_error_metrics(observed_hwm, predicted_wl):
 
 def load_distance_raster(distance_file):
     """
-    Load a distance-to-coastline raster and replace NoData values with NaN.
+    Load a distance-to-water-body raster and replace NoData values with NaN.
 
     Parameters
     ----------
@@ -173,7 +173,7 @@ def objective_function_bayesopt(rf_values, rf_test, distances, wl_pred, z_dem, g
     rf_test : ndarray
         2D array of land cover class IDs.
     distances : ndarray
-        2D array of distances to coastline.
+        2D array of distances to water body.
     wl_pred : ndarray
         2D array of predicted water levels before calibration.
     z_dem : ndarray
@@ -214,7 +214,7 @@ def objective_function_bayesopt(rf_values, rf_test, distances, wl_pred, z_dem, g
     num_points = np.sum(valid_mask)
     mse = mean_squared_error(observed_hwm, predicted_wl_opt)
 
-    penalty_exponent = 3
+    penalty_exponent = 4
     penalty_ratio = initial_flood_extent_points / num_points
     modified_mse = mse * (penalty_ratio ** penalty_exponent)
 
@@ -236,7 +236,7 @@ def apply_optimized_reduction_factors(rf_test, distances, optimized_rf, wl_pred,
     rf_test : ndarray
         2D array of land cover class IDs.
     distances : ndarray
-        2D array of distances to coastline.
+        2D array of distances to water body.
     optimized_rf : dict
         Dictionary of optimized reduction factors per land cover class.
     wl_pred : ndarray

@@ -6,6 +6,8 @@ from skimage import measure
 from pyproj import Transformer
 import geopandas as gpd
 from shapely.geometry import Point
+from skimage.morphology import binary_erosion, square   # NEW COMPUTATION OF MASKS OF WATER
+
 
 # Import constants from config.py
 from config import (
@@ -282,7 +284,53 @@ def save_aligned_stations_to_shapefile(aligned_stations, output_shapefile, crs_e
     gdf.to_file(output_shapefile)
     print(f"Saved aligned water stations to {output_shapefile}")
 
+# ----------------------------------------------------------
+# NEW HELPER: perimeter of marine + river + lake water masks
+# ----------------------------------------------------------
+def water_perimeter_mask(
+    land_cover,
+    z_dem,# ← NEW ARGUMENT
+    water_class=WATER_CLASS_ID,
+    min_cluster_size=50,
+    connectivity=2
+):
+    """
+    Build a binary mask whose 1-pixels trace the outer rim of
+    all significant water clusters (sea, rivers, lakes).
 
+    Parameters
+    ----------
+    land_cover : ndarray
+        2-D array of land-cover class IDs.
+    water_class : int, optional
+        ID corresponding to water in the land-cover raster.
+    min_cluster_size : int, optional
+        Clusters smaller than this pixel count are ignored.
+    connectivity : {1,2}, optional
+        1 = 4-connected, 2 = 8-connected.
 
+    Returns
+    -------
+    perimeter_mask : ndarray
+        Binary mask (uint8) marking perimeter pixels only.
+    """
+    # 1. Water mask
+    # water_mask = (land_cover == water_class)
+    water_mask = (land_cover == water_class) | (z_dem < 0)
 
+    # 2. Label connected clusters
+    labels = measure.label(water_mask, connectivity=connectivity)
+    if labels.max() == 0:
+        raise ValueError("No water clusters detected!")
 
+    # 3. Remove tiny puddles
+    counts = np.bincount(labels.ravel())
+    large = counts >= min_cluster_size
+    large[0] = False                        # background always False
+    water_mask &= large[labels]
+
+    # 4. Perimeter: water pixels touching ≥1 non-water neighbour
+    eroded = binary_erosion(water_mask, square(3))   # 8-neighbour
+    perimeter_mask = water_mask & (~eroded)
+
+    return perimeter_mask.astype(np.uint8)
