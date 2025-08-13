@@ -1,4 +1,4 @@
-# PyFlood: Coastal Flood Mapping using High-Resolution DEM and Land Cover Data
+# PyFlood: Rapid Coastal Flood Mapping with High-Resolution Digital Elevation Model, Land Cover and Water Level Data
 
 A modular, reproducible framework for simulating and validating coastal flooding using open-source tools and high-resolution datasets.
 
@@ -34,7 +34,7 @@ PyFlood/
 │   ├── SFINCS_Flood_Water_Depth_over_1m.tif
 │   ├── SFINCS_Flood_Water_Level.tif
 ├── output_data/                   # Processed outputs
-│   ├── (seed point, masks, coastline, flood maps, validation shapefiles, etc.)
+│   ├── (seed point, masks, water body, flood maps, validation shapefiles, etc.)
 ├── notebooks/                     # Main Jupyter notebooks
 │   ├── preprocessing.ipynb
 │   ├── PyFlood.ipynb
@@ -50,7 +50,7 @@ PyFlood/
 ## Input Files
 
 Example input files can be downloaded from:
-[PyFlood Input Data Zenodo](https://zenodo.org/doi/10.5281/zenodo.15330868)
+[PyFlood Input Data Zenodo](https://zenodo.org/doi/10.5281/zenodo.13147014)
 
 | File | Description | Source |
 |:---|:---|:---|
@@ -66,7 +66,7 @@ Example input files can be downloaded from:
 
 | Notebook | Purpose |
 |:---|:---|
-| Preprocessing.ipynb | Loads DEM and land cover, extracts seed point, generates coastline, aligns HWMs. |
+| Preprocessing.ipynb | Loads DEM and land cover, extracts seed point, generates water body detection, aligns HWMs. |
 | PyFlood_Modeling.ipynb | Performs kriging interpolation, flood mapping, Bayesian calibration, attenuation |
 | Validation.ipynb | Compares CFM and CFM+A against SFINCS and observed HWMs, computes validation metrics. |
 
@@ -88,8 +88,8 @@ Example input files can be downloaded from:
 ### 1. Preprocessing
 - Clean DEM and Land Cover datasets.
 - Identify and validate the seed point (ocean seed).
-- Extract coastline from DEM.
-- Generate Distance-to-Coastline raster.
+- Extract water body perimeter from DEM and land cover.
+- Generate Distance-to-Water-Body raster.
 - Align observed HWMs to DEM grid.
 
 ### 2. Flood Mapping (PyFlood.ipynb)
@@ -176,5 +176,9 @@ pip install -r requirements.txt
 
 **Armando Ulises Santos Cruz**  
 Email: armando.ulises.santos@utexas.edu
+
+Distributed under the Creative Commons CC0 1.0 Universal License. See LICENSE for more information.
+
+
 
 Distributed under the Creative Commons CC0 1.0 Universal License. See LICENSE for more information.
